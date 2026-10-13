@@ -183,7 +183,10 @@ const getTr = (
 export const makeTranslatedExpr = (tr: unknown, paramExprs: string[]) => {
 	// This is a plural object and will not have parameters
 	if (typeof tr !== 'string') return JSON.stringify(tr)
-	const escaped = tr.replace(/`/g, '\\`')
+	// The translation becomes the body of a template literal, so everything that
+	// is special there must be escaped: otherwise a backslash turns into an
+	// escape sequence and `${…}` in a translation would run as code
+	const escaped = tr.replace(/[`\\]|\$\{/g, m => `\\${m}`)
 	// If we don't have parameters, that either means the key has no parameter markers,
 	// or we want the translation unchanged inside an interpolation call
 	return paramExprs.length === 0

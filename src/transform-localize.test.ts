@@ -57,6 +57,18 @@ describe('makeTransExpr', () => {
 		expect(makeTranslatedExpr('``` hello``', ['0'])).toBe(
 			'`\\`\\`\\` hello\\`\\``'
 		))
+	test('backslashes and ${ stay text', () => {
+		const run = (expr: string, scope: Record<string, unknown> = {}) =>
+			new Function(...Object.keys(scope), `return ${expr}`)(
+				...Object.values(scope)
+			)
+		expect(
+			run(makeTranslatedExpr('C:\\temp\\new ${price} \\u{1F600}', []))
+		).toBe('C:\\temp\\new ${price} \\u{1F600}')
+		expect(
+			run(makeTranslatedExpr('${price} for $1', ['name']), {name: 'you'})
+		).toBe('${price} for you')
+	})
 })
 
 test('replaceGlobals', () => {
