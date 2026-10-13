@@ -84,3 +84,34 @@ test('replaceGlobals', () => {
 		'\n\tconsole.log(`A key!! $a $ ${someVariable} ${\'string argument\'}: ${"string with a , comma"}-${(1 + 2 * 3 / 4)}-${`bonjour`}`, `noTranslation`, "en");\n\t'
 	)
 })
+
+test('replaceGlobals accepts keys the bundler printed with other quotes', () => {
+	// rolldown (Vite 8) prints some key literals as template or single quoted strings
+	expect(
+		replaceGlobals({
+			code: "a(__$LOCALIZE$__(`Total CO₂`), __$LOCALIZE$__('it\\'s \"quoted\"'), __$LOCALIZE$__('\\x41\\`b'), __$LOCALIZE$__(`x $1`, [y]))",
+			locale: 'en',
+			translations: {
+				en: {
+					locale: 'en',
+					translations: {
+						'Total CO₂': 'CO₂ gesamt',
+						'it\'s "quoted"': 'quoted',
+						'A`b': 'ab',
+						'x $1': 'x is $1',
+					},
+				},
+			},
+		})
+	).toBe('a(`CO₂ gesamt`, `quoted`, `ab`, `x is ${y}`)')
+})
+
+test('replaceGlobals rejects keys with interpolation', () => {
+	expect(() =>
+		replaceGlobals({
+			code: '__$LOCALIZE$__(`a ${b}`)',
+			locale: 'en',
+			translations: {en: {locale: 'en', translations: {}}},
+		})
+	).toThrow('Unsupported key literal')
+})
